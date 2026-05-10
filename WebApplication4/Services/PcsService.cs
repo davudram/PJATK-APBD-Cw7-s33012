@@ -22,20 +22,39 @@ public class PcsService(AppDbContext db) : IPcsService
 
     public async Task<IEnumerable<PcComponentsResponse>> GetPcComponents(int id, CancellationToken ct)
     {
-        var comp = db.Pc.FirstOrDefaultAsync(x => x.Id == id, ct);
+        var comp = await db.Pc.FirstOrDefaultAsync(x => x.Id == id, ct);
         
         if (comp is null)
             throw new NotFoundException($"Pcs with {id} id not found");
-        
-        return await db.PcComponent.Where(x => x.PcId == id)
+
+        return await db.Pc.Where(x => x.Id == id)
             .Select(opt => new PcComponentsResponse(
-                opt.ComponentCode,
-                opt.Component.Name,
-                opt.Component.Description,
-                opt.Amount,
-                opt.Component.ComponentManufacturers.FullName,
-                opt.Component.ComponentTypes.Name
-            )).ToListAsync(ct);
+                    opt.Id,
+                    opt.Name,
+                    opt.Weight,
+                    opt.Warranty,
+                    opt.CreatedAt,
+                    opt.Stock,
+                    opt.PcComponents.Select(x => new ComponentsResponse(
+                            x.Amount,
+                            new ComponentResponse(
+                                    x.Component.Code,
+                                    x.Component.Name,
+                                    x.Component.Description,
+                                    new ManufacturerResponse(
+                                            x.Component.ComponentManufacturers.Id,
+                                            x.Component.ComponentManufacturers.Abbreviation,
+                                            x.Component.ComponentManufacturers.FullName,
+                                            x.Component.ComponentManufacturers.FoundationDate
+                                        ),
+                                    new TypeResponse(
+                                            x.Component.ComponentTypes.Id,
+                                            x.Component.ComponentTypes.Abbreviation,
+                                            x.Component.ComponentTypes.Name
+                                        )
+                                )
+                        ))
+                )).ToListAsync(ct);
     }
 
     public async Task<PcsResponse> CreatePcs(CreatePcsRequest request, CancellationToken ct)

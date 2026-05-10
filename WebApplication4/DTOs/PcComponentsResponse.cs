@@ -3,10 +3,11 @@
 namespace WebApplication4.DTOs;
 
 public record PcComponentsResponse(
-    string ComponentCode,
+    int Id,
     string Name,
-    string Description,
-    int Amount,
-    string Manufacturer,
-    string ComponentType
+    float Weight,
+    int Warranty,
+    DateTime CreatedAt,
+    int Stock,
+    IEnumerable<ComponentsResponse> Components
 );
